@@ -5,7 +5,7 @@
 % Adaptado de:  Prolog Programming for AI, Ivan Bratko, 4th edition
 %          
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+% blocks_world_planner.pl   
 :- use_module(blocks_world_definitions).
 :- use_module(blocks_world_actions).
 
@@ -13,17 +13,21 @@
 % plan(+State, +Goals, -Plan)
 % Gera um plano para alcançar os objetivos a partir do estado atual
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Caso base: objetivos já satisfeitos
-plan(_, [], []).
+
 % Passo recursivo: seleciona uma ação que ajuda a alcançar um objetivo
+plan(State, Goals, []) :-
+    satisfied(State, Goals), !.
+
 plan(State, Goals, Plan) :-
     select(Goal, Goals, _),
     achieves(Action, Goal),
     preserves(Action, Goals),
-    can(Action, _), % A ação deve ser possível
+    can(Action, Preconditions),
+    satisfied(State, Preconditions),
     regress(Goals, Action, NewGoals),
     plan(State, NewGoals, PrePlan),
     append(PrePlan, [Action], Plan).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % satisfied(+State, +Goals)
@@ -60,17 +64,22 @@ select(Goal, [H|T], [H|Rest]) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 achieves(Action, Goal) :-
     adds(Action, Added),
-    member(Goal, Added).
+    member(Goal, Added),
+    % Garante que a ação é relevante para o goal específico
+    ( Goal = on(Block,_) -> 
+        Action = move(Block, _, _)
+    ; true).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % preserves(+Action, +Goals)
 % Garante que a ação não apague nenhum objetivo ainda não alcançado
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% A ação preserva os objetivos se nenhum fato deletado está nos objetivos
 preserves(Action, Goals) :-
-    deletes(Action, Deleted),
-    \+ (member(Del, Deleted), member(Del, Goals)),
-    % Nova linha: garante que nenhuma condição impossível surja após a ação
-    \+ (member(Fact, Deleted), impossible(Fact, Goals)).
+    deletes(Action, Deletes),
+    \+ (member(F, Deletes), member(F, Goals)),
+    \+ (member(F, Deletes), impossible(F, Goals)).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % regress(+Goals, +Action, -RegressedGoals)

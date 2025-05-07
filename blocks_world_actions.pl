@@ -1,81 +1,86 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% blocks_world_actions.pl                         
-% Definição das ações can/2,adds/2, deletes/2, imposible/2 para o mundo dos blocos
-% Data: Maio/2025
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % blocks_world_actions.pl                          
+% Definições das ações e pré-condições do mundo dos blocos 
+% Data: Maio/2025          
+% Adaptado de:  Prolog Programming for AI, Ivan Bratko, 4th edition
+%          
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :- use_module(blocks_world_definitions).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 % 1. Mover bloco de uma posição da mesa para outro bloco
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-can(move(Block, FromPlace, ToBlock), [clear(Block), clear(ToBlock), on(Block, FromPlace)]) :-
-    block(Block),
-    block(ToBlock),
-    Block \== ToBlock,
-    FromPlace = p([X, Y]),     % Bloco está sobre uma faixa da mesa
-    place(X),
-    place(Y),
-    X < Y,
-    size(Block, S_b),
-    size(ToBlock, S_t),
-    S_b - S_t =< 2.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+can(move(Block, From, To), Pre) :-
+    % Verificação estrutural primeiro
+    block(Block), block(To),
+    dif(Block, To),  % Garante que são diferentes desde o início
+    nonvar(From), From = p([X,Y]),
+    X < Y, place(X), place(Y),
+    % Pré-condições
+    Pre = [clear(Block), clear(To), on(Block, From)],
+    % Verificação de tamanho
+    size(Block, Sb), size(To, St),
+    Sb =< St + 2.    % Permite diferença de até 2 unidades
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 % 2. Mover bloco de um bloco para outro bloco
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-can(move(Block, FromBlock, ToBlock), [clear(Block), clear(ToBlock), on(Block, FromBlock)]) :-
-    block(Block),
-    block(FromBlock),
-    block(ToBlock),
-    Block \== FromBlock,
-    Block \== ToBlock,
-    FromBlock \== ToBlock,
-    size(Block, S_b),
-    size(ToBlock, S_t),
-    S_b - S_t =< 2.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+can(move(Block, From, To), Pre) :-
+    block(Block), block(From), block(To),
+    dif(Block, From), dif(Block, To), dif(From, To),
+    Pre = [clear(Block), clear(To), on(Block, From)],
+    size(Block, Sb), size(To, St),
+    Sb =< St + 2.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 3. Mover bloco de um bloco para outro bloco que esteja apoiado em outro bloco
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-can(move(Block, FromBlock, ToBlock), [clear(Block), clear(ToBlock), on(Block, FromBlock)]) :-
-    block(Block),
-    (block(FromBlock) ; FromBlock = supports(_, _)),  % permite apoio múltiplo
-    block(ToBlock),
-    Block \== FromBlock,
-    Block \== ToBlock,
-    FromBlock \== ToBlock,
-    size(Block, S_b),
-    size(ToBlock, S_t),
-    S_b - S_t =< 2.
+% 2.1 Caso especial para supports(a,b)
+can(move(Block, supports(A,B), To), Pre) :-
+    block(Block), block(To),
+    dif(Block, To),
+    Pre = [clear(Block), clear(To), on(Block, supports(A,B))],
+    size(Block, Sb), size(To, St),
+    Sb =< St + 2.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+% 3. Mover bloco de um bloco com suporte múltiplo para outro bloco
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+can(move(Block, FromBlock, ToPlace), [clear(Block), on(Block, FromBlock)]) :-
+    block(Block),
+    (block(FromBlock) ; FromBlock = supports(_,_)),
+    nonvar(ToPlace), ToPlace = p([X,Y]),
+    integer(X), integer(Y), X < Y,
+    place(X), place(Y),
+    size(Block, S_b),
+    S_b =:= Y - X + 1.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 % 4. Mover bloco de um bloco para a mesa
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 can(move(Block, FromBlock, ToPlace), [clear(Block), on(Block, FromBlock)]) :-
     block(Block),
     block(FromBlock),
-    Block \== FromBlock,
+    dif(Block, FromBlock),
+    nonvar(ToPlace),  % Garante instanciação
     ToPlace = p([X, Y]),
-    place(X),
-    place(Y),
-    X < Y,
+    integer(X), integer(Y), X < Y,  % Verificação segura
+    place(X), place(Y),
     size(Block, S_b),
-    S_b is Y - X + 1.
+    S_b =:= Y - X + 1.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 5. Mover bloco da mesa para outra posição da mesa
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+% 5. Mover bloco da mesa para outra posição da mesa 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 can(move(Block, FromPlace, ToPlace), [clear(Block), on(Block, FromPlace)]) :-
     block(Block),
+    nonvar(FromPlace), nonvar(ToPlace),  % Garante instanciação
     FromPlace = p([Xi, Yi]),
     ToPlace = p([Xf, Yf]),
+    integer(Xi), integer(Yi), integer(Xf), integer(Yf),  % Verificação de tipos
     Xi < Yi,
     Xf < Yf,
-    Xi \== Xf,
-    Yi \== Yf,
+    \+ (Xi =:= Xf, Yi =:= Yf),
     size(Block, S_b),
-    S_b is Yf - Xf + 1.
+    S_b =:= Yf - Xf + 1.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Predicado auxiliar: position_clear(X, Y, State)
@@ -103,7 +108,6 @@ block_clear(X, State) :-
 possible(Action, State) :-
     can(Action, Preconditions),
     forall(member(P, Preconditions), member(P, State)).
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Definição dos efeitos das ações (adds/2 e deletes/2)
@@ -145,25 +149,24 @@ apply_action(Action, StateIn, StateOut) :-
 % impossible: impede estados inválidos
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Um bloco não pode estar em dois lugares ao mesmo tempo
-impossible(on(Block, Place1), Goals) :-
-    member(on(Block, Place2), Goals),
-    Place1 \== Place2.
+% (2) Um bloco não pode estar sobre si mesmo
+impossible(on(Block, Block), _) :- !.
 
-% Um bloco não pode estar sobre si mesmo
-impossible(on(Block, Block), _).
+% (1) Bloco não pode estar em múltiplos lugares diferentes
+impossible(on(Block, _), Goals) :-
+    findall(P, member(on(Block, P), Goals), Ps),
+    sort(Ps, Sorted),
+    length(Sorted, L), L > 1.
 
-% Dois blocos não podem ocupar as mesmas posições da mesa
-impossible(on(Block1, p([X1,Y1])), Goals) :-
-    member(on(Block2, p([X2,Y2])), Goals),
-    Block1 \== Block2,
-    overlap(p([X1,Y1]), p([X2,Y2])).
+% (3) Dois blocos não podem estar na mesma posição exata
+impossible(on(B1, Pos), Goals) :-
+    member(on(B2, Pos), Goals),
+    dif(B1, B2).
 
-% Uma posição não pode estar 'clear' se houver um bloco sobre ela
+% (4) Uma posição não pode estar 'clear' se houver algo sobre ela
 impossible(clear(P), Goals) :-
-    member(on(_, P), Goals)
-    ;
-    (member(on(_, p([X,Y])), Goals), between(X, Y, P)).
+    member(on(_, P), Goals).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Predicado auxiliar: overlap/2 - verifica se duas faixas se sobrepõem

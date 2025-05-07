@@ -55,10 +55,10 @@ initial_state([
 %    	 -----------
 % place  1 2 3 4 5 6
 goal_state([
-    on(a, 1),               % a está sobre a posição 2
-    on(c, a),               % c está sobre a
+    on(a, c),               % a está sobre c
     on(d, p([3,4,5])),      % d está sobre as posições 3-5
     on(b, 6),               % b está sobre a posição 6
-    clear(c),               % c está livre
-    clear(b)                % b está livre
+    clear(a), % a está livre
+    clear(b), % b está livre
+    clear(d)  % d está livre
 ]).
