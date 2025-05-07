@@ -10,15 +10,15 @@
 
 ---
 ## Descrição do Projeto
-Este projeto apresenta a implementação de um planejador em Prolog, com base no conceito de manipulação de blocos descrito no Capítulo 17, página 403, do livro de Ivan Bratko. O objetivo é simular um sistema de planejamento baseado em ações, utilizando lógica de Prolog para mover blocos entre diferentes estados enquanto satisfaz metas definidas. O sistema opera com blocos identificados pelas letras **a, b, c, d** e **e**, permitindo sua movimentação entre posições numeradas e entre si, de acordo com o estado inicial e os objetivos definidos. 
+Este projeto apresenta a implementação de um planejador em Prolog, com base no conceito de manipulação de blocos descrito no Capítulo 17, do livro Prolog *Programming for Artificial Intelligence*, 
+ de Ivan Bratko. O objetivo é simular um sistema de planejamento baseado em ações, utilizando lógica de Prolog para mover blocos entre diferentes estados enquanto satisfaz metas definidas. O sistema opera com blocos identificados pelas letras **a, b, c** e **d** , permitindo sua movimentação entre posições numeradas e entre si, de acordo com o estado inicial e os objetivos definidos. 
 
 ## Descrição Geral
 
-O projeto implementa um sistema de planejamento no "Mundo dos Blocos", no qual diferentes blocos estão posicionados em um grid, com posições livres ou ocupadas. O sistema permite:
+O projeto implementa um sistema de planejamento no "Mundo dos Blocos", no qual diferentes blocos estão posicionados, com posições livres ou ocupadas. O sistema permite:
 
 - Planejar movimentos de blocos de uma configuração inicial para uma final.
 - Executar ações que movem blocos, garantindo que as restrições (como posições livres e pré-condições) sejam respeitadas.
-- Utilizar percepções para observar a posição de blocos antes de executar ações.
 - Verificar se todas as metas foram alcançadas, regredir metas e planejar com base nas pré-condições de ações.
 
 ### Regras Básicas do Mundo dos Blocos
@@ -30,44 +30,20 @@ O projeto implementa um sistema de planejamento no "Mundo dos Blocos", no qual d
 ## Estruturas Principais
 
 1. **Estado Inicial**: Define onde cada bloco está no início da execução.
-    ```prolog
-    initial_state([
-     on(c, p([1,2])),        % c está sobre as posições 1-2 da mesa
-      on(a, 4),              % a está sobre a posição 4
-      on(b, 6),              % b está sobre a posição 6
-      on(d, supports(a,b)),  % d está sobre os blocos a e b
-      clear(c),              % c está livre
-      clear(d),              % d está livre
-      clear(3),              % posição 3 está livre
-      clear(5)               % posição 5 está livre
-   ]).
-    ```
 
 2. **Estado Final**: Define o objetivo final, onde cada bloco deve estar após a execução do plano.
-    ```prolog
-    goal_state([
-        on(a, 1),               % a está sobre a posição 2
-        on(c, a),               % c está sobre a
-        on(d, p([3,4,5])),      % d está sobre as posições 3-5
-        on(b, 6),               % b está sobre a posição 6
-        clear(c),               % c está livre
-        clear(b)                % b está livre
-    ]).
-    ```
+
 ## Funcionamento do Código
-
 O fluxo básico do sistema é o seguinte:
-
 1. **Seleção de Metas**: O sistema primeiro verifica as metas que precisam ser alcançadas.
 2. **Planejamento de Ações**: Para cada meta, o sistema seleciona uma ação que possa satisfazê-la, verificando as pré-condições necessárias. Se uma ação não puder ser executada, o sistema regressa as metas e recalcula os passos.
 3. **Execução de Ações**: As ações são executadas em sequência, movendo blocos de uma posição para outra. Cada movimento atualiza o estado do mundo dos blocos.
-4. **Verificação de Satisfação de Metas**: O sistema verifica se todas as metas foram alcançadas após a execução de cada ação.
 
 ### Exemplo de Execução
 
 Dado o estado inicial:
 ```prolog
- initial_state([
+initial_state([
   on(c, p([1,2])),        % c está sobre as posições 1-2 da mesa
   on(a, 4),              % a está sobre a posição 4
   on(b, 6),              % b está sobre a posição 6
@@ -82,19 +58,17 @@ Dado o estado inicial:
 E o estado final desejado:
 
 ```prolog
-
-estado_final([
-    bloco(c, [1, 2]),   
-    bloco(a, 1),        
-    bloco(d, [3, 5]),   
-    bloco(b, 6)         
+goal_state([
+    on(a, c),               % a está sobre c
+    on(d, p([3,4,5])),      % d está sobre as posições 3-5
+    on(b, 6),               % b está sobre a posição 6
+    clear(a), % a está livre
+    clear(b), % b está livre
+    clear(d)  % d está livre
 ]).
 
 ```
 O sistema gera um plano que moverá os blocos de acordo com as metas definidas. 
-
-Durante a execução, o sistema também usa percepções para verificar o estado atual, garantindo que as ações estejam corretas.
-
 
 ## Como Executar
 
@@ -104,7 +78,7 @@ Durante a execução, o sistema também usa percepções para verificar o estado
 4. Execute o plano chamando o predicado `plan/3`:
 
     ```prolog
-    plan(estado_inicial, estado_final, Plano).
+    initial_state(State), goal_state(Goals), plan(State, Goals, Plan).
     ```
 
 O sistema gerará e executará o plano de ações necessário para mover os blocos.
@@ -112,7 +86,7 @@ O sistema gerará e executará o plano de ações necessário para mover os bloc
 
 ## Como Executar no SWI-Prolog
 
-1. Instale o SWI-Prolog no seu computador, se ainda não tiver feito isso. Você pode baixar a versão mais recente no site oficial: SWI-Prolog Downloads.
+1. Instale o SWI-Prolog no seu computador, se ainda não tiver feito isso. Você pode baixar a versão mais recente no site oficial: [SWI-Prolog Downloads](https://www.swi-prolog.org/Download.html).
 2. Após a instalação, abra o terminal (Linux ou macOS) ou o prompt de comando (Windows).
 3. Navegue até o diretório onde o seu arquivo .pl (arquivo Prolog) está salvo.
 4. Inicie o SWI-Prolog com o comando:
@@ -126,11 +100,27 @@ Carregue o seu arquivo Prolog utilizando o comando:
 ```prolog
 ?- [nome_do_arquivo].
 ```
+No nosso caso, são três arquivos, nessa ordem:
+
+```prolog
+?- [blocks_world_definitions].
+   [blocks_world_actions].
+   [blocks_world_planner].
+```
 
 Defina o estado inicial e o estado final e chame o predicado plan/3 para gerar o plano:
 
 ```prolog
-    ?- plan(estado_inicial, estado_final, Plano).
+ ?- initial_state(State), goal_state(Goals), plan(State, Goals, Plan).
 ```
 
 O sistema calculará o plano de ações necessário para alcançar o estado final a partir do estado inicial.
+
+Há também passos intermediários que podem ser observados:
+
+```prolog
+?- initial_state(S0), apply_action(move(c,p([1,2]), d), S0, S1).
+```
+```prolog
+?- initial_state(S0), possible(move(a, 4, c), S0).
+```
