@@ -5,7 +5,7 @@
 - **Curso**: Ciência/Engenharia da Computação - Turmas CO01 e CB500  
 - **Integrantes**:
   - Antonio Mileysson França Bragança - 21850963
-  - Jéssica de Figueredo Colares - 22060036
+  - Jessica de Figueredo Colares - 22060036
   - Lucas Vinícius Gonçalves Gadelha - 22050517
 
 ---
