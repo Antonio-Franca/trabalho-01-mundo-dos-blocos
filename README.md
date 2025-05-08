@@ -76,14 +76,20 @@ O sistema gera um plano que moverá os blocos de acordo com as metas definidas.
 
 1. Acesse o [SWISH](https://swish.swi-prolog.org/), um ambiente online para Prolog.
 
-2. Copie e cole o código Prolog no editor do SWISH.
+2. Coloque os códigos de `blocks_world_definitions.pl`, `blocks_world_actions.pl` e `blocks_world_planner.pl` em um único arquivo, removendo:
+```prolog
+:- use_module(blocks_world_definitions).
+:- use_module(blocks_world_actions).
+```
 
 3. Defina o estado inicial e o estado final.
-4. Execute o plano chamando o predicado `plan/3`:
 
-    ```prolog
-    initial_state(State), goal_state(Goals), plan(State, Goals, Plan).
-    ```
+4. Chame o predicado `plan/3`:
+  ```prolog
+    ?- initial_state(State), goal_state(Goals), plan(State, Goals, Plan).
+   ```
+
+5. Aperte o botão `run` para executar o plano.
 
 O sistema gerará e executará o plano de ações necessário para mover os blocos.
 
