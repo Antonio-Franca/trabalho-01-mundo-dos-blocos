@@ -81,14 +81,11 @@ O sistema gera um plano que moverá os blocos de acordo com as metas definidas.
 :- use_module(blocks_world_definitions).
 :- use_module(blocks_world_actions).
 ```
-
 3. Defina o estado inicial e o estado final.
-
 4. Chame o predicado `plan/3`:
   ```prolog
     ?- initial_state(State), goal_state(Goals), plan(State, Goals, Plan).
    ```
-
 5. Aperte o botão `run` para executar o plano.
 
 O sistema gerará e executará o plano de ações necessário para mover os blocos.
