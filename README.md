@@ -3,7 +3,9 @@
 ## Equipe
 - **Disciplina**: Inteligência Artificial IEC034/ICC265 - 2025/1  
 - **Curso**: Ciência/Engenharia da Computação - Turmas CO01 e CB500  
+
 - **Integrantes**:
+
   - Antonio Mileysson França Bragança - 21850963
   - Jessica de Figueredo Colares - 22060036
   - Lucas Vinícius Gonçalves Gadelha - 22050517
@@ -73,7 +75,9 @@ O sistema gera um plano que moverá os blocos de acordo com as metas definidas.
 ## Como Executar
 
 1. Acesse o [SWISH](https://swish.swi-prolog.org/), um ambiente online para Prolog.
+
 2. Copie e cole o código Prolog no editor do SWISH.
+
 3. Defina o estado inicial e o estado final.
 4. Execute o plano chamando o predicado `plan/3`:
 
