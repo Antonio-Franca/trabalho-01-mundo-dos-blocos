@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% world_definitions.pl                         
+% blocks_world_definitions.pl                         
 % Definições do mundo dos blocos 
 % Data: Maio/2025          
 % Adaptado de:  Prolog Programming for AI, Ivan Bratko, 4th edition
